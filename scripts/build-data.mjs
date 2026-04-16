@@ -24,8 +24,11 @@ import Papa from 'papaparse'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
 
-// .env.local is the source of truth in dev; fall back to defaults for CI.
-const CSV_PATH = process.env.CSV_PATH || '/home/user/mcp_skills.csv'
+// CSV lives under data/ in the repo so Vercel/CI builds pick it up without
+// extra env plumbing. CSV_PATH can still override it for local dev if the
+// operator wants to point at a fresh dump elsewhere on disk.
+const DEFAULT_CSV = path.join(ROOT, 'data', 'mcp_skills.csv')
+const CSV_PATH = process.env.CSV_PATH || DEFAULT_CSV
 const TOP_N = parseInt(process.env.TOP_N_SSG || '500', 10)
 
 const SNIPPET_LEN = 200
