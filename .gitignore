@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.*.local
+.DS_Store
+*.log
+
+# Generated data artifacts (rebuilt from CSV on every dev/build)
+data/skills.json
+data/top-slugs.json
+public/skills-index.json
