@@ -24,12 +24,12 @@ jobs:
           python-version: '3.12'
 
       - name: Run scraper
-        run: python3 /home/user/scrape_mcp_skills.py
+        run: python3 scrape_mcp_skills.py
 
       - name: Run cleaner
         run: |
-          python3 /home/user/clean_mcp_skills.py /home/user/mcp_skills.csv
-          cp /home/user/mcp_skills.csv data/mcp_skills.csv
+          python3 clean_mcp_skills.py mcp_skills.csv
+          cp mcp_skills.csv data/mcp_skills.csv
 
       - name: Commit updated CSV
         id: commit
