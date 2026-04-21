@@ -1,0 +1,57 @@
+name: Daily MCP Skills Refresh
+
+on:
+  schedule:
+    # 02:07 UTC = 05:07 MSK every day
+    - cron: '7 2 * * *'
+  workflow_dispatch:
+    # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    outputs:
+      csv_changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run scraper
+        run: python3 /home/user/scrape_mcp_skills.py
+
+      - name: Run cleaner
+        run: python3 /home/user/clean_mcp_skills.py
+
+      - name: Commit updated CSV
+        id: commit
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          if git diff --quiet data/mcp_skills.csv; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No CSV changes — skipping deploy."
+          else
+            git add data/mcp_skills.csv
+            git commit -m "chore: refresh MCP skills CSV $(date -u +'%Y-%m-%dT%H:%MZ')"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "CSV updated — will trigger Vercel deploy."
+          fi
+
+      - name: Push changes
+        if: steps.commit.outputs.changed == 'true'
+        run: git push
+
+  deploy:
+    needs: refresh
+    if: needs.refresh.outputs.csv_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        run: curl -s -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
